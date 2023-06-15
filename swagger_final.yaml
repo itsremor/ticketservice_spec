@@ -1,0 +1,1838 @@
+openapi: 3.0.3
+info:
+  title: Онлайн-сервис продажи билетов
+  description: |-
+    Данная документация выполнена для Выпускной Квалификационной работы "Проектирование web-API онлайн-сервиса продажи билетов" и описывает основные методы для онлайн-сервиса продажи билетов.
+  version: 1.1.3
+tags:
+  - name: users
+    description: Ресурс, отвечающий за взаимодействие с пользователями и осуществление над ними операций 
+  - name: events
+    description: Ресурс, отвечающий за осуществление операций над мероприятиями
+  - name: tickets
+    description: Ресурс, позволяющий взаимодейтсвовать с билетами
+  - name: reports
+    description: Ресурс, отвечающий за работу с заявками
+paths:
+  /events:
+    post:
+      tags:
+        - events
+      summary: Создание нового мероприятия
+      description: Создание нового мероприятия организатором
+      operationId: createEvent
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен авторизованного организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventForCreating'
+      responses:
+        '201':
+          description: Мероприятие успешно создано
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятие успешно создано'
+                  id:
+                    type: number
+                    description: Идентификатор созданного мероприятия
+                    example: 4231342
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат запроса'
+                required:
+                  - message
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+  /events/{id}:
+    patch:
+      tags:
+        - events
+      summary: Создание нового мероприятия
+      description: Создание нового мероприятия организатором
+      operationId: createEvent
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен авторизованного организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, которое организатор или администратор собирается редактировать
+          schema:
+            type: number
+            example: 4231342
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventForEditing'
+      responses:
+        '200':
+          description: Мероприятие успешно отредактировано
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятие успешно создано'
+                  id:
+                    type: number
+                    description: Идентификатор отредактированного мероприятия
+                    example: 4231342
+                required:
+                  - message
+                  - id
+        '400':
+          description: Пустое тело запроса
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильное тело запроса'
+                required:
+                  - message
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятия с таким id не существует'
+                required:
+                  - message
+  /events/{id}/new_tickets:
+    post:
+      tags:
+        - events
+      summary: Заведение билетов
+      description: Заведение новой партии билетов для мероприятия
+      operationId: createTicketsForEvent
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен авторизованного организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, для которого организатор собирается завести билеты
+          schema:
+            type: number
+            example: 4231342
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatingTickets'
+      responses:
+        '200':
+          description: Билеты успешно заведены
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билеты успешно заведены'
+                  ticketinfo:
+                    type: object
+                    properties:
+                      ticketpack_id:
+                        type: number
+                        description: Идентификатор набора билетов
+                        example: 989912
+                      count_of_tickets:
+                        type: number
+                        description: Количество заведённых билетов
+                        example: 45
+                      start_ticket_id:
+                        type: number
+                        description: Идентификатор первого билета в партии
+                        example: 1009321701
+                      end_ticket_id:
+                        type: number
+                        description: Идентификатор последнего билета в партии
+                        example: 1009321800
+                      price_per_ticket:
+                        type: number
+                        description: Цена одного билета
+                        example: 1000
+                    required:
+                      - ticketpack_id
+                      - count_of_tickets
+                      - start_ticket_id
+                      - end_ticket_id
+                      - price_per_ticket
+                  places_left:
+                    type: number
+                    description: Количество оставшихся мест на площадке
+                    example: 455
+                required:
+                  - message
+                  - ticketinfo
+                  - ticketpack_id
+                  - places_left
+        '400':
+          description: Неправильное тело запроса
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильное тело запроса'
+                required:
+                  - message
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятия с таким id не существует'
+                required:
+                  - message
+        '409':
+          description: Количество мест превышает количество оставшихся свободных на площадке мест
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Недостаточно мест на площадке'
+                  count_of_creating_tickets:
+                    type: number
+                    description: Количество билетов, которое пытался завести организатор
+                    example: 45
+                  free_places_left:
+                    type: number
+                    description: Количество свободных на площадке мест
+                    example: 32
+                required:
+                  - message
+                  - free_places_left
+                  - count_of_creating_tickets
+  /events/{id}/tickets/{ticketpack_id}:
+    post:
+      tags:
+        - events
+      summary: Передача билетов в продажу
+      description: Начало продажи партии билетов для мероприятия
+      operationId: outToSaleTicketsForEvent
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен авторизованного организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, для которого организатор собирается завести билеты
+          schema:
+            type: number
+            example: 4231342
+        - name: ticketpack_id
+          in: path
+          required: true
+          description: Идентификатор партии билетов, которую выставляют на продажу
+          schema:
+            type: number
+            example: 989912
+      responses:
+        '200':
+          description: Билеты успешно выставлены на продажу
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билеты успешно выставлены на продажу'
+                  ticketinfo:
+                    type: object
+                    properties:
+                      ticketpack_id:
+                        type: number
+                        description: Идентификатор набора билетов
+                        example: 989912
+                      count_of_tickets:
+                        type: number
+                        description: Количество заведённых билетов
+                        example: 45
+                      price_per_ticket:
+                        type: number
+                        description: Цена одного билета
+                        example: 1000
+                    required:
+                      - ticketpack_id
+                      - count_of_tickets
+                      - price_per_ticket
+                required:
+                  - message
+                  - ticketinfo
+                  - ticketpack_id
+                  - places_left
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Ресурса с таким id не существует. Может касаться как мероприятия, так и партии билетов
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Ресурса с таким id не существует'
+                  resource:
+                    type: string
+                    description: Название ресурса, который отсутствует
+                    enum:
+                      - 'ticketpack'
+                      - 'event'
+                    default: 'ticketpack'
+                required:
+                  - message
+  /events/cancel/{id}:
+    post:
+      tags:
+        - events
+      summary: Отмена мероприятия
+      description: Омена мероприятия
+      operationId: cancelEvent
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен авторизованного организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: reason
+          in: header
+          required: true
+          description: Краткое описание причины отмены мероприятия
+          schema:
+            type: string
+            example: 'Указ губернатора №329 от 17.07.2021'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, для которого организатор собирается завести билеты
+          schema:
+            type: number
+            example: 4231342
+      responses:
+        '200':
+          description: Мероприятие отменено
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятие отменено'
+                required:
+                  - message
+
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятия с таким id не существует'
+                required:
+                  - message
+  /reports:
+    post:
+      tags:
+        - reports
+      summary: Отправка новой заявки в поддержку
+      description: Отправка новой заявки в поддержку пользователем
+      operationId: sendReport
+      parameters:
+        - name: token
+          in: header
+          required: false
+          description: Токен пользователя. Если пользователь авторизован, то его адрес электронной почты подтягивается из базы данных и вводить его нет необходимости. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: email
+          in: header
+          required: false
+          description: Адрес электронной почты пользователя, приобретавшего билет. Если пользователь авторизован, то его адрес электронной почты подтягивается из базы данных и вводить его нет необходимости
+          schema:
+            type: string
+            example: 'reporter_mail@mail.ru'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendingReport'
+      responses:
+        '200':
+          description: Заявка успешно отправлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Заявка успешно отправлена'
+                  id:
+                    type: number
+                    description: Идентификатор заявки
+                    example: 1957661
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат запроса'
+                required:
+                  - message
+  /reports/{id}:
+    post:
+      tags:
+        - reports
+      summary: Ответ на заявку администратором
+      description: Ответ на заявку администратором после её рассмотрения
+      operationId: responseToReport
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен администратора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор заявки, на которую отвечает администратор
+          schema:
+            type: number
+            example: 1957661
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResonsingToReport'
+      responses:
+        '200':
+          description: Ответ успешно отправлен
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Ответ успешно отправлен'
+                  id:
+                    type: number
+                    description: Идентификатор заявки
+                    example: 1957661
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат запроса'
+                required:
+                  - message  
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является администратором
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Заявки с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Заявки с таким id не существует'
+                required:
+                  - message
+  /tickets/{event_id}:
+    post:
+      tags:
+        - tickets
+      summary: Покупка билета
+      description: Покупка билета пользователем
+      operationId: buyTicket
+      parameters:
+        - name: token
+          in: header
+          required: false
+          description: Токен покупателя. Email пользователя подтягивается из базы данных. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: email
+          in: header
+          required: false
+          description: Email покупателя. Вводится, если пользователь не авторизован
+          schema:
+            type: string
+            example: 'buyermail@mail.ru'
+        - name: event_id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, на которое приобретается билет
+          schema:
+            type: number
+            example: 4231342
+      responses:
+        '200':
+          description: Билет успешно приобретён
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билет успешно приобретён'
+                  id:
+                    type: number
+                    description: Идентификатор билета
+                    example: 1957661421342154
+                required:
+                  - message
+                  - id
+        '400':
+          description: Ошибка оплаты
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Ошибка оплаты'
+                required:
+                  - message  
+        '401':
+          description: Пользователь не авторизован или не был указан email
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '404':
+          description: Мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятия с таким id не существует'
+                required:
+                  - message
+    get:
+      tags:
+        - tickets
+      summary: Получение статистики продажи билетов
+      description: Покупка билета пользователем
+      operationId: getSellingTicketInfo
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: event_id
+          in: path
+          required: true
+          description: Идентификатор мероприятия, по которому будем получать статистику
+          schema:
+            type: number
+            example: 4231342
+      responses:
+        '200':
+          description: Информация по продажам успешно получена
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билет успешно приобретён'
+                  event_id:
+                    type: number
+                    description: Идентификатор мероприятия
+                    example: 1957661421342154
+                  event_name:
+                    type: string
+                    description: Название мероприятия
+                    example: 'Cтендап-концерт Сергея Орлова в Воронеже'
+                  total_expected_income:
+                    type: number
+                    description: Ожидаемая прибыль с мероприятия при условии продажи всех существующих билетов
+                    example: 45000
+                  total_actual_income:
+                    type: number
+                    description: Текущая прибыль с мероприятия
+                    example: 39000
+                  sales:
+                    type: array
+                    description: Информация о продажах по партиям билетов. Если партий билетов нет - возвращается пустой массив
+                    items:
+                      type: object
+                      properties:
+                        ticketpack_id:
+                          type: number
+                          description: Идентификационный партии билетов
+                          example: 989912
+                        count_of_tickets:
+                          type: number
+                          description: Количество билетов в партии билетов
+                          example: 45
+                        sold_tickets:
+                          type: number
+                          description: Количество проданных билетов
+                          example: 39
+                        price:
+                          type: number
+                          description: Цена одного билета
+                          example: 1000
+                        expected_income:
+                          type: number
+                          description: Ожидаемая прибыль с партии билетов
+                          example: 45000
+                        actual_income:
+                          type: number
+                          description: Текущая прибыль с партии билетов
+                          example: 39000
+                      required:
+                        - ticketpack_id
+                        - count_of_tickets
+                        - sold_tickets
+                        - price
+                        - expected_income
+                        - actual_income
+                required:
+                  - message
+                  - event_id
+                  - event_name
+                  - total_expected_income
+                  - total_actual_income
+
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятия с таким id не существует'
+                required:
+                  - message
+  /tickets/{id}:
+    get:
+      tags:
+        - tickets
+      summary: Просмотр попыток прохода по билету
+      description: Просмотр билетёром попыток прохода по билету
+      operationId: checkTicketPasses
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен билетёра. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор билета
+          schema:
+            type: number
+            example: 1957661421342154
+      responses:
+        '200':
+          description: Проходки получены
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Проходки получены'
+                  id:
+                    type: number
+                    description: Идентификатор билета
+                    example: 1957661421342154
+                  passes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pass_id:
+                          type: number
+                          description: Идентификационный номер прохода
+                          example: 41412999123
+                        pass_time:
+                          type: number
+                          description: Время попытки по UTC+0 в формате Unix timestamp
+                          example: 1620409713
+                        pass_result:
+                          type: string
+                          enum:
+                            - 'Пропущен'
+                            - 'Повторная попытка входа'
+                            
+                required:
+                  - message
+                  - id
+                  - passes
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является билетёром данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Билета с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билета с таким id не существует'
+                required:
+                  - message
+    patch:
+      tags:
+        - tickets
+      summary: Изменить статус прохода по билету
+      description: Изменить статус прохода по билету организатором мероприятия
+      operationId: changeTicketPassStatus
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор билета
+          schema:
+            type: number
+            example: 1957661421342154
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeTicketStatus'
+      responses:
+        '200':
+          description: Статус билета изменён
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Статус билета изменён'
+                  id:
+                    type: number
+                    description: Идентификатор билета
+                    example: 1957661421342154
+                  new_status:
+                    type: string
+                    enum:
+                      - Приобретён
+                      - Был осуществлён проход
+                required:
+                  - id
+                  - new_status
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Билета с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билета с таким id не существует'
+                required:
+                  - message
+    post:
+      tags:
+        - tickets
+      summary: Проверить билет
+      description: Проверка билета по его id. После проверки, в случае, если по данному билету не осуществлялось попыток прохода, статус будет изменён
+      operationId: checkTicket
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен билетёра. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор билета
+          schema:
+            type: number
+            example: 1957661421342154
+      responses:
+        '200':
+          description: Проход одобрен
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Проход одобрен'
+                  id:
+                    type: number
+                    description: Идентификатор билета
+                    example: 1957661421342154
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является билетёром данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Билета с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Билета с таким id не существует'
+                required:
+                  - message
+        '409':
+          description: По данному билету уже осуществлена попытка прохода
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'По данному билету уже осуществлена попытка прохода'
+                  pass_id:
+                    type: number
+                    description: Идентификационный номер прохода
+                    example: 41412999123
+                  pass_time:
+                    type: number
+                    description: Время попытки по UTC+0 в формате Unix timestamp
+                    example: 1620409713
+                  pass_result:
+                    type: string
+                    example: 'Пропущен'
+                required:
+                  - message
+                  - pass_id
+                  - pass_time
+                  - pass_result
+  /tickets/check/{pass_id}:
+    get:
+      tags:
+        - tickets
+      summary: Просмотр попытки прохода по билету
+      description: Просмотр билетёром попыток прохода по билету
+      operationId: checkTicketPass
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен билетёра. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: pass_id
+          in: path
+          required: true
+          description: Идентификатор билета
+          schema:
+            type: number
+            example: 4231342
+      responses:
+        '200':
+          description: Проходка получена
+          content:
+            application/json:
+              schema:
+                properties:
+                      pass_time:
+                        type: number
+                        description: Время попытки по UTC+0 в формате Unix timestamp
+                        example: 1620409713
+                      pass_result:
+                        type: string
+                        enum:
+                          - 'Пропущен'
+                          - 'Повторная попытка входа'
+                            
+                required:
+                  - pass_time
+                  - pass_result
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является билетёром данного мероприятия
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Попытки прохода с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Попытки прохода с таким id не существует'
+                required:
+                  - message
+  /tickets/new_refund/{id}:
+    post:
+      tags:
+        - tickets
+      summary: Отправка заявки на возврат денег за билет
+      description: Отправка новой заявки в поддержку пользователем
+      operationId: sendRefundRequest
+      parameters:
+        - name: token
+          in: header
+          required: false
+          description: Токен авторизованного пользователя. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: email
+          in: header
+          required: false
+          description: Адрес электронной почты пользователя, приобретавшего билет. Если пользователь авторизован, то его адрес электронной почты подтягивается из базы данных и вводить его нет необходимости. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификационный номер билета, за который пользователь будет просить вернуть средства
+          schema:
+            type: number
+            example: 423994372361
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendRefundRequest'
+      responses:
+        '200':
+          description: Заявка успешно отправлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Заявка успешно отправлена'
+                  id:
+                    type: number
+                    description: Идентификатор заявки
+                    example: 2351931
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат запроса'
+                required:
+                  - message
+        '409':
+          description: Мероприятие для которого предназначен билет уже прошло
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Мероприятие уже прошло'
+                required:
+                  - message
+  /tickets/refund/{id}:
+    post:
+      tags:
+        - tickets
+      summary: Ответ на заявку организатором
+      description: Ответ на заявку администратором после её рассмотрения
+      operationId: responseToRefundRequest
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор заявки, на которую отвечает организатор
+          schema:
+            type: number
+            example: 2351931
+        - name: decision
+          in: header
+          required: true
+          description: Решение
+          schema:
+            type: string
+            enum:
+              - 'Принять'
+              - 'Отклонить'
+      responses:
+        '200':
+          description: Ответ успешно отправлен
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Ответ успешно отправлен'
+                  id:
+                    type: number
+                    description: Идентификатор заявки
+                    example: 1957661
+                  decision:
+                    type: string
+                    enum:
+                      - 'Принять'
+                      - 'Отклонить'
+                required:
+                  - message
+                  - id
+                  - decision
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат запроса'
+                required:
+                  - message  
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Заявки с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Заявки с таким id не существует'
+                required:
+                  - message
+        '409':
+          description: На эту заявку уже был отправлен ответ
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'На эту заявку уже был отправлен ответ'
+                required:
+                  - message
+  /users/ban/{id}:
+    post:
+      tags:
+        - users
+      summary: Блокировка пользователя администратором
+      description: Блокировка пользователя администратором за нарушение правил сервиса
+      operationId: banUser
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен администратора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя, которого собираются блокировать
+          schema:
+            type: number
+            example: 2351931
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BanReason'
+      responses:
+        '200':
+          description: Пользователь заблокирован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Пользователь заблокирован'
+                  id:
+                    type: number
+                    description: Идентификатор пользователя
+                    example: 2351931
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат заголовка'
+                required:
+                  - message  
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является администратором
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Пользователя с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Пользователя с таким id не существует'
+                required:
+                  - message
+        '409':
+          description: Пользователь уже заблокирован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Пользователь уже заблокирован'
+                required:
+                  - message
+  /users/kapell:
+    post:
+      tags:
+        - users
+      summary: Назначение пользователя билетёром
+      description: Назначение пользователя билетёром
+      operationId: makeKapell
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен организатора. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Kapell'
+      responses:
+        '200':
+          description: Пользователь назначен билетёром
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Пользователь назначен билетёром'
+                  id:
+                    type: number
+                    description: Идентификатор пользователя
+                    example: 5435432
+                required:
+                  - message
+                  - id
+        '400':
+          description: Не были введены необходимые данные
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Неправильный формат данных'
+                required:
+                  - message  
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+        '403':
+          description: Пользователь не является организатором
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Нет доступа'
+                required:
+                  - message
+        '404':
+          description: Пользователя с таким id не существует или мероприятия с таким id не существует
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    enum: 
+                    - 'Пользователя с таким id не существует'
+                    - 'Мероприятия с таким id не существует'
+                required:
+                  - message
+        '409':
+          description: Пользователь уже является билетёром на данном мероприятии
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Пользователь уже является билетёром'
+                required:
+                  - message
+  /users/tickets:
+    get:
+      tags:
+        - users
+      summary: Получение списка приобретённых билетов пользователем
+      description: Получение списка приобретённых билетов пользователем
+      operationId: userTickets
+      parameters:
+        - name: token
+          in: header
+          required: true
+          description: Токен пользователя. В качестве токена передаётся GUID
+          schema:
+            type: string
+            example: 'cef69b3f-f4cf-4d6c-8983-58f597640142'
+      responses:
+        '200':
+          description: Получен список билетов пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tickets'
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Описание кода ответа
+                    example: 'Не авторизован'
+                required:
+                  - message
+components:
+  schemas:
+    EventForCreating:
+      type: object
+      properties:
+        name:
+          type: string
+          description:  Название мероприятия
+          example: 'Стендап-концерт Сергея Орлова'
+        description:
+          type: string
+          description: Описание проводимого мероприятия
+          example: 'Сергей Орлов — стендап-комик из посёлка Депутатский. И в этот день он выступит в Воронеже!'
+        date_and_time:
+          type: string
+          description: Дата и время начала мероприятия в формате Unix timestamp. Время указывается по UTC+0
+          example: '1688216400'
+        placement_id:
+          type: number
+          description: Идентификатор площадки, на которой будет проходить мероприятие
+          example: 91883
+      required:
+                - name
+                - date_and_time
+                - placement_id
+    EventForEditing:
+      type: object
+      properties:
+        name:
+          type: string
+          description:  Название мероприятия
+          example: 'Стендап-концерт Сергея Орлова в Воронеже'
+        description:
+          type: string
+          description: Описание проводимого мероприятия
+          example: 'Сергей Орлов — стендап-комик из посёлка Депутатский. И в этот вечер он выступит в Воронеже!'
+        date_and_time:
+          type: string
+          description: Дата и время начала мероприятия в формате Unix timestamp. Время указывается по UTC+0
+          example: '1688216400'
+        placement_id:
+          type: number
+          description: Идентификатор площадки, на которой будет проходить мероприятие
+          example: 91885
+    CreatingTickets:
+      type: object
+      properties:
+        ticket_count:
+          type: number
+          description:  Количество билетов к выпуску
+          example: 45
+        price:
+          type: number
+          description: Цена за один билет
+          example: 1000
+      required:
+        - ticket_count
+        - price
+    SendingReport:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Адрес электронной почты заявителя
+          example: 'concertman1998@mail.ru'
+        topic:
+          type: string
+          description:  Тема обращения
+          example: 'Меня не пропустили на концерт'
+        description:
+          type: string
+          description: Описание возникшей проблемы
+          example: 'Мой билет проверили, сказали что по нему уже проходили и по итогу меня не пропустили на концерт. Верните деньги!!!!'
+      required:
+        - topic
+        - description
+    ChangeTicketStatus:
+      type: object
+      properties:
+        new_status:
+          type: string
+          enum:
+            - Приобретён
+            - Был осуществлён проход
+      required:
+        - new_status
+    ResonsingToReport:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Описание возникшей проблемы
+          example: 'Мы очень сожалеем, что так случилось. В течение трёх дней мы вернём деньги вам на карту. А в знак извинения предоставим билет стоимостью до 2000 рублей на любое мероприятие по вашему выбору'
+      required:
+        - description
+    SendRefundRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Адрес электронной почты заявителя
+          example: 'ilovesomething1941@mail.ru'
+        description:
+          type: string
+          description: Описание возникшей проблемы
+          example: 'Я не могу пойти на мероприятие. Прошу вернуть деньги'
+      required:
+        - description
+    BanReason:
+      type: object
+      properties:
+        ban_reason:
+          type: string
+          description: Причина блокировки
+          example: 'Нарушение пунктов 1 и 2 правила пользования сервиса'
+      required:
+        - ban_reason
+    Kapell:
+      type: object
+      properties:
+        user_id:
+          type: number
+          description: Идентификатор пользователя, которого собираются сделать билетёром на мероприятии
+          example: 5435432
+        event_id:
+          type: number
+          description: Идентификатор мероприятия, для которого создают нового билетёра
+          example: 52539992
+      required:
+        - user_id
+        - event_id
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: number
+          description: Идентификатор билета
+          example: 980985435432
+        purchase_date:
+          type: number
+          description: Дата приобретения билета в формате Unix timestamp
+          example: 1623522979
+        price:
+          type: number
+          description: Цена билета при покупке
+          example: 1000
+      required:
+        - id
+        - purchase_date
+        - price
+    Tickets:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              event_id:
+                type: number
+                description: Идентификационный номер мероприятия
+                example: 532342333
+              tickets:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
